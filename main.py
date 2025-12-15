@@ -8,12 +8,12 @@ def parse_csv(uploaded_file):
     df = pd.read_csv(uploaded_file)
     # Ensure proper column types
     df["kg"] = pd.to_numeric(df["kg"], errors="coerce")
-    df["gbp"] = pd.to_numeric(df["gbp"], errors="coerce")
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
     df = df.dropna()
     return df
 
 
-def solve(df, max_kg, max_gbp):
+def solve(df, max_kg, max_value):
     """Solve the gift packing optimization problem.
 
     Returns:
@@ -21,7 +21,7 @@ def solve(df, max_kg, max_gbp):
     """
     items = list(df.index)
     kg = df["kg"].to_dict()
-    gbp = df["gbp"].to_dict()
+    value = df["value"].to_dict()
 
     # Create decision variables
     num_boxes = len(items)
@@ -42,7 +42,7 @@ def solve(df, max_kg, max_gbp):
     # Weight and value constraints for each box
     for b in B:
         prob += pl.lpSum(kg[i] * x[i][b] for i in items) <= max_kg * y[b]
-        prob += pl.lpSum(gbp[i] * x[i][b] for i in items) <= max_gbp * y[b]
+        prob += pl.lpSum(value[i] * x[i][b] for i in items) <= max_value * y[b]
 
     # Symmetry breaking constraint
     for b in range(len(B) - 1):
@@ -72,12 +72,12 @@ def solve(df, max_kg, max_gbp):
     for b in used_boxes:
         box_items = [i for i in items if pl.value(x[i][b]) > 0.5]
         w = sum(kg[i] for i in box_items)
-        v = sum(gbp[i] for i in box_items)
+        v = sum(value[i] for i in box_items)
         names = df.loc[box_items, "item"].tolist()
         boxes_summary.append({
             "Box": b + 1,
             "Weight (kg)": round(w, 2),
-            "Value (£)": round(v, 2),
+            "Value": round(v, 2),
             "Items": ", ".join(names)
         })
 
@@ -91,9 +91,9 @@ def main():
     # Sidebar for constraints
     st.sidebar.header("Constraints")
     max_kg = st.sidebar.number_input("Max weight per box (kg)", value=2.0, step=0.1, min_value=0.1)
-    max_gbp = st.sidebar.number_input("Max value per box (£)", value=39.0, step=1.0, min_value=1.0)
+    max_value = st.sidebar.number_input("Max value per box (Currency)", value=39.0, step=1.0, min_value=1.0)
 
-    st.write(f"Configure constraints in the sidebar. Current limits: {max_kg} kg and £{max_gbp} per box.")
+    st.write(f"Configure constraints in the sidebar. Current limits: {max_kg} kg and {max_value} currency per box.")
 
     uploaded_file = st.file_uploader("Upload gift data (CSV)", type=["csv"])
 
@@ -108,7 +108,7 @@ def main():
                 st.error("No gift data to optimize.")
             else:
                 with st.spinner("Solving optimization problem..."):
-                    df_result, boxes_summary, num_boxes = solve(edited_df.reset_index(drop=True), max_kg, max_gbp)
+                    df_result, boxes_summary, num_boxes = solve(edited_df.reset_index(drop=True), max_kg, max_value)
 
                     if df_result is None:
                         st.error("Could not find a feasible solution. Try relaxing constraints.")
@@ -131,7 +131,7 @@ def main():
                             mime="text/csv"
                         )
     else:
-        st.info("Please upload a CSV file with columns: 'item', 'kg', 'gbp'")
+        st.info("Please upload a CSV file with columns: 'item', 'kg', 'value'")
 
 
 main()
