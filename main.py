@@ -101,7 +101,7 @@ def main():
         df = parse_csv(uploaded_file)
 
         st.subheader("Gift Data (Editable)")
-        edited_df = st.data_editor(df, num_rows="dynamic", width=stretch)
+        edited_df = st.data_editor(df, num_rows="dynamic", width="stretch")
 
         if st.button("🎁 Pack Gifts"):
             if edited_df.empty:
@@ -117,10 +117,10 @@ def main():
                         st.metric("Minimum boxes needed", num_boxes)
 
                         st.write("**Box Summary:**")
-                        st.dataframe(boxes_summary, width=stretch)
+                        st.dataframe(boxes_summary, width="stretch")
 
                         st.write("**Item Assignments:**")
-                        st.dataframe(df_result, width=stretch)
+                        st.dataframe(df_result, width="stretch")
 
                         # Download button for results
                         csv = df_result.to_csv(index=False).encode('utf-8')
