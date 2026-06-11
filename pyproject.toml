@@ -10,3 +10,8 @@ dependencies = [
     "pulp>=3.3.0",
     "streamlit>=1.52.1",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
