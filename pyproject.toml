@@ -7,7 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "pandas>=3.0.5",
     "pandas-stubs>=2.3.3,<3.1.0",
-    "pulp>=3.3.0",
+    "pulp>=3.3.2",
     "streamlit>=1.60.0",
 ]
 
